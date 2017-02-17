@@ -11,3 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ANOVA on different factors
 
+```{r}
+data("mtcars")
+```
+

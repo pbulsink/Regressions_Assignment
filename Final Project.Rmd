@@ -1,17 +1,103 @@
 ---
 title: "Motor Trend Data Analysis"
 author: "Philip Bulsink"
-date: '2017-02-11'
-output: html_document
+date: '2017-02-18'
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
+library(ggplot2)
 knitr::opts_chunk$set(echo = TRUE)
+options(digits = 2)
 ```
 
-ANOVA on different factors
+# How does Transmission Type Effect Milage?
 
+##Executive Summary
+This report will outline the effect of transmission type (automatic vs. manual) on gas milage. The influence of other variables will be investigated as well as confounding factors. It is shown that
+
+##Introduction
+The data to be studied is available in `R` in the `mtcars` frame. This data contains information on 32 automobiles from 1973-1974, listing a total of 10 variables on each car. These variables include the number of cylinders, the engine size (displacement), the horsepower, the weight, the number of gears, and the transmission type, amongst others. This is easily loaded into `R` with one command.
 ```{r}
 data("mtcars")
+```
+
+##Data Preparation
+A few of the variables we will be investigating in this report can be considered 'factors', that is, of a non-numeric or a counted type. This includes transmission type, and may include number of gears, number of carburetors, number of cylinders, or if the engine is straight or V shaped.
+```{r}
+mtcars$am<-factor(mtcars$am, labels = c("Automatic", "Manual"))
+mtcars$vs<-factor(mtcars$vs, labels = c("V", "Straight"))
+mtcars$cyl<-as.factor(mtcars$cyl)
+mtcars$carb<-as.factor(mtcars$carb)
+mtcars$gear<-as.factor(mtcars$gear)
+```
+
+##Data Exploration
+A first glance at the data suggests that there is an effect on milage (mpg) by transimission type (am), whereby manual transmissions have better (higher) gas milage. See a plot of this data in Appendix 1.
+
+We can quantify this by regressing the data over this factor:
+```{r}
+fit1<-lm(mpg ~ am, data=mtcars)
+summary(fit1)$coef
+```
+
+Thus, we can see that, taking no other factors into play, the average milage of cars with a manual transmission is approximately `r summary(fit1)$coef[2]` better than that of an automatic transmission, which has an average milage of `r summary(fit1)$coef[1]`. The p value for this estimate is very low, at $`r summary(fit1)$coef[8]`$, allowing us to reject the null hypothesis that there is no difference.
+
+##Detailed Data Analysis
+What if the enhancement of milage in manual transmissions is due to some other factor? For example, in Appendix 2, we show the milage as a function of transmission type, but broken up by cylinder. For 8 cylinder cars, it looks like manual may not be any better than automatic, contrary to our above discovery. We'll test for other factors like this as well, before validating which matter.
+
+```{r}
+fit2 <- lm(mpg~am + cyl, data=mtcars)
+```
+
+If we include cylinders in our model, we then find that cars with a manual transmission is approximately `r summary(fit2)$coef[2]` better than that of an automatic transmission, which has an average milage of `r summary(fit2)$coef[1]`. The benefit of a manual transmission is much reduced when considering cylinder count.
+
+```{r}
+fit3 <- lm(mpg~am + cyl + wt, data=mtcars)
+fit4 <- lm(mpg~am + cyl + wt + gear, data=mtcars)
+fit5 <- lm(mpg~am + cyl + wt + gear + hp, data=mtcars)
+fit6 <- lm(mpg~am + cyl + wt + gear + hp + carb, data=mtcars)
+fit7 <- lm(mpg~am + cyl + wt + gear + hp + carb + disp, data=mtcars)
+fit8 <- lm(mpg~am + cyl + wt + gear + hp + carb + disp + drat, data=mtcars)
+fit9 <- lm(mpg~am + cyl + wt + gear + hp + carb + disp + drat + vs, data=mtcars)
+fit10 <- lm(mpg~am + cyl + wt + gear + hp + carb + disp + drat + vs + qsec, data=mtcars)
+
+anova(fit1, fit2, fit3, fit4, fit5, fit6, fit7, fit8, fit9, fit10)[1:6]
+```
+
+We can see which of these factors are confounding using 
+```{r}
+#code
+```
+
+##Final Model
+Knowing that we can fit the best model with by including , we do so:
+```{r}
+#code
+fitfinal<-lm(mpg~am+cyl, data=mtcars)
+summary(fitfinal)$coef
+```
+
+Thus, we can see that, with appropriate factors taken into consideration, the average manual transmission has a mpg of `r summary(fitfinal)$coef[2]` higher than that of an automatic transmission at `r summary(fitfinal)$coef[3]`. This is in addition to other factors, but has a p value of $`r summary(fit1)$coef[8]`$, showing its significance. 
+
+Analysis of the residuals shows that there is no obvious trend, and the QQ plot appears approprate. 
+
+#Appendices
+##Appendix 1: Plot of milage vs. transmission type:
+```{r}
+plot(mpg~am, data=mtcars)
+```
+
+##Appendix 2: Plot of milage vs. cylinder count and transmission type:
+```{r}
+ggplot(mtcars, aes(x=as.factor(cyl), y=mpg)) + geom_point() + facet_grid(.~am)
+```
+
+##Appendix 3: Residuals, QQ, Leverage 
+```{r}
+par(mfrow=c(2,2))
+plot(fitfinal)
 ```
 

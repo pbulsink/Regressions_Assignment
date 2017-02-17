@@ -1,0 +1,13 @@
+---
+title: "Motor Trend Data Analysis"
+author: "Philip Bulsink"
+date: '2017-02-11'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+ANOVA on different factors
+
